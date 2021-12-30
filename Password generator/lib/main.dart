@@ -1,115 +1,499 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
-void main() {
-  runApp(const MyApp());
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:password_generator_flutter/description_card.dart';
+import 'package:password_generator_flutter/pwgen.dart';
+
+import 'cloud/cloud.dart';
+
+class SizeConfig {
+  static MediaQueryData _mediaQueryData;
+  static double screenWidth;
+  static double screenHeight;
+  static double blockSizeHorizontal;
+  static double blockSizeVertical;
+
+  void init(BuildContext context) {
+    _mediaQueryData = MediaQuery.of(context);
+    screenWidth = _mediaQueryData.size.width;
+    screenHeight = _mediaQueryData.size.height;
+    blockSizeHorizontal = screenWidth / 100;
+    blockSizeVertical = screenHeight / 100;
+  }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+void main() {
+  runApp(MaterialApp(
+    home: PasswordGenerator(),
+  ));
+}
 
+class PasswordGenerator extends StatefulWidget {
   // This widget is the root of your application.
   @override
+  _PasswordGeneratorState createState() => _PasswordGeneratorState();
+}
+
+class _PasswordGeneratorState extends State<PasswordGenerator> {
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+    SizeConfig().init(context);
+    double drawerSize = 
+        SizeConfig.screenWidth * 0.8 > 600 ? 800 : SizeConfig.screenWidth * 0.8;
+    return Scaffold(
+      appBar: AppBar(
+        iconTheme: new IconThemeData(color: Colors.black),
+        backgroundColor: const Color(0x00FFFFF0),
+        title: Text(
+          "Safe Password Generator",
+          style: TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // drawer: Container(
+      //   width: drawerSize,
+      //   child: Drawer(
+      //     child: DescriptionWidget(),
+      //   ),
+      // ),
+      drawer: Drawer(
+        // Add a ListView to the drawer. This ensures the user can scroll
+        // through the options in the drawer if there isn't enough vertical
+        // space to fit everything.
+          child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text('Password Generator App'),
+              ),
+              ListTile(
+                title: const Text('Easy Mode '),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  Navigator.push(context,
+
+                    MaterialPageRoute(builder: (context) =>  PasswordGenerationWidget()),);
+                },
+              ),
+              ListTile(
+                title: const Text('Hard Mode'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  Navigator.push(context,
+
+                    MaterialPageRoute(builder: (context) =>  PasswordGenerationWidget()),);
+                },
+              ),
+              ListTile(
+                title: const Text('Upload to Cloud Or Retrieve Password From Cloud'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  Navigator.push(context,
+
+                    MaterialPageRoute(builder: (context) =>  cloud()),);
+                },
+              ),
+
+            ],
+          )),
+      body: PasswordGenerationWidget(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+// Left side's view
+class DescriptionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      color: const Color(0xFF9FBCFF),
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Container(
+            height: 50.0,
+            // margin: EdgeInsets.symmetric(vertical: 5.0),
+            alignment: Alignment.center,
+            child: DrawerHeader(
+              child: Center(
+                child: Text(
+                  "Manual",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ),
+              decoration: BoxDecoration(
+                color: Color(0x22000000),
+              ),
+              padding: EdgeInsets.all(2.0),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
+          ),
+          DescriptionCards(storage: DescriptionStorage()),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+// Right side's view
+class PasswordGenerationWidget extends StatefulWidget {
+  @override
+  _PasswordGenerationWidgetState createState() =>
+      _PasswordGenerationWidgetState();
+}
+
+class _PasswordGenerationWidgetState extends State<PasswordGenerationWidget> {
+  final _pwKey = GlobalKey<FormState>();
+  bool pwobscure = true;
+  bool ewobscure = true;
+  bool newobscure = true;
+  bool _includeSpecialCharacter = true;
+  String newPassword = "Sample password";
+  String pw = "";
+  String ezword = "";
+
+  final pwController = TextEditingController();
+  final ezwordController = TextEditingController();
+  final lengthController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    double textfieldWidth = SizeConfig.blockSizeHorizontal * 40;
+    double tableWidth = textfieldWidth + 130;
+    double labelWidth = 80;
+
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      color: const Color(0xFF74A0FF),
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Center(
+            child: Column(
+              // contents aligned
+              children: [
+                Container(
+                  // TITLE
+                  margin: EdgeInsets.all(16.0),
+                  child: Text(
+                    "Password Converter",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ),
+                Container(
+                  // FORM
+                  margin: EdgeInsets.all(16.0),
+                  child: Column(children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text("Materials for a new password",
+                            style: TextStyle(
+                              fontSize: 15.0,
+                              fontWeight: FontWeight.bold,
+                            )), // title
+                        Center(
+                          child: Container(
+                              margin: const EdgeInsets.all(8.0),
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Form(
+                                      key: _pwKey,
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            width: tableWidth,
+                                            child: Row(children: [
+                                              SizedBox(
+                                                  width: labelWidth,
+                                                  child: Text("Password")),
+                                              SizedBox(
+                                                width: textfieldWidth,
+                                                child: TextFormField(
+                                                  obscureText: pwobscure,
+                                                  controller: pwController,
+                                                  onChanged: (value) {
+                                                    pw = value;
+                                                  },
+                                                ),
+                                              ),
+                                              Container(
+                                                alignment: Alignment.center,
+                                                child: IconButton(
+                                                  iconSize: 20,
+                                                  icon: Icon(
+                                                      Icons.remove_red_eye),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      this.pwobscure =
+                                                          !this.pwobscure;
+                                                      pwController.text = pw;
+                                                      pwController.selection =
+                                                          TextSelection.fromPosition(
+                                                              TextPosition(
+                                                                  offset: pwController
+                                                                      .text
+                                                                      .length));
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ]),
+                                          ),
+                                          Container(
+                                            width: tableWidth,
+                                            child: Row(children: [
+                                              SizedBox(
+                                                  width: labelWidth,
+                                                  child: Text("Easy words")),
+                                              SizedBox(
+                                                width: textfieldWidth,
+                                                child: TextFormField(
+                                                  obscureText: ewobscure,
+                                                  controller: ezwordController,
+                                                  onChanged: (value) {
+                                                    ezword = value;
+                                                  },
+                                                ),
+                                              ),
+                                              IconButton(
+                                                iconSize: 20,
+                                                icon:
+                                                    Icon(Icons.remove_red_eye),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    this.ewobscure =
+                                                        !this.ewobscure;
+                                                    ezwordController.text =
+                                                        ezword;
+                                                    ezwordController.selection =
+                                                        TextSelection.fromPosition(
+                                                            TextPosition(
+                                                                offset:
+                                                                    ezwordController
+                                                                        .text
+                                                                        .length));
+                                                  });
+                                                },
+                                              )
+                                            ]),
+                                          ),
+                                          Container(
+                                            width: tableWidth,
+                                            child: Row(children: [
+                                              SizedBox(
+                                                  width: labelWidth,
+                                                  child: Text("Length")),
+                                              SizedBox(
+                                                width: textfieldWidth,
+                                                child: TextFormField(
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  controller: lengthController,
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: EdgeInsets.all(2.0),
+                                              )
+                                            ]),
+                                          ),
+                                          Container(
+                                            width: tableWidth,
+                                            height: 80,
+                                            child: Row(children: [
+                                              SizedBox(
+                                                  width: labelWidth,
+                                                  child: Center(
+                                                    child: Text(
+                                                        "Special Characters"),
+                                                  )),
+                                              Container(
+                                                child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Container(
+                                                        width: textfieldWidth,
+                                                        height: 30,
+                                                        child: Row(
+                                                          children: [
+                                                            Radio(
+                                                              value: true,
+                                                              groupValue:
+                                                                  _includeSpecialCharacter,
+                                                              onChanged:
+                                                                  (bool value) {
+                                                                setState(() {
+                                                                  _includeSpecialCharacter =
+                                                                      value;
+                                                                });
+                                                              },
+                                                            ),
+                                                            Text(
+                                                              'Include',
+                                                              style: TextStyle(
+                                                                fontSize: 15.0,
+                                                              ),
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: textfieldWidth,
+                                                        height: 30,
+                                                        child: Row(
+                                                          children: [
+                                                            Radio(
+                                                              value: false,
+                                                              groupValue:
+                                                                  _includeSpecialCharacter,
+                                                              onChanged:
+                                                                  (bool value) {
+                                                                setState(() {
+                                                                  _includeSpecialCharacter =
+                                                                      value;
+                                                                });
+                                                              },
+                                                            ),
+                                                            const Text(
+                                                              'Not Include',
+                                                              style: TextStyle(
+                                                                fontSize: 15.0,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ]),
+                                              ),
+                                            ]),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      width: textfieldWidth * 0.2,
+                                      height: 200,
+                                      child: RaisedButton(
+                                        child: const Text(
+                                          "Generate",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            this.newPassword =
+                                                PasswordGeneration.newPassword(
+                                                    pwController.text.length !=
+                                                            0
+                                                        ? pwController.text
+                                                        : "",
+                                                    ezwordController
+                                                                .text.length !=
+                                                            0
+                                                        ? ezwordController.text
+                                                        : "",
+                                                    lengthController
+                                                                .text.length !=
+                                                            0
+                                                        ? int.parse(
+                                                            lengthController
+                                                                .text)
+                                                        : 0,
+                                                    _includeSpecialCharacter);
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ])),
+                        ),
+                      ],
+                    ),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 10.0),
+            child: Center(
+                child: Column(children: [
+              Text("Output",
+                  style: TextStyle(
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.bold,
+                  )),
+              Container(
+                  margin: EdgeInsets.all(8.0),
+                  child: Column(children: [
+                    Text("New safe password"),
+                    Container(
+                      width: textfieldWidth * 1.3 + 100,
+                      padding: EdgeInsets.fromLTRB(50, 0, 0, 0),
+                      child: Row(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.all(8.0),
+                            color: Colors.white,
+                            width: textfieldWidth * 1.2,
+                            height: 100,
+                            child: Text(
+                              newobscure
+                                  ? '${newPassword.replaceAll(RegExp(r"."), "•")}'
+                                  : newPassword,
+                              textAlign: TextAlign.start,
+                              overflow: TextOverflow.clip,
+                            ),
+                          ),
+                          Container(
+                            alignment: Alignment.center,
+                            child: IconButton(
+                              iconSize: 20,
+                              icon: Icon(Icons.remove_red_eye),
+                              onPressed: () {
+                                setState(() {
+                                  this.newobscure = !this.newobscure;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RaisedButton(
+                      child: const Text("Copy to Clipboard"),
+                      onPressed: () {
+                        Clipboard.setData(new ClipboardData(text: newPassword));
+                      },
+                    ),
+                  ]))
+            ])),
+          ),
+        ],
+      ),
     );
   }
 }
